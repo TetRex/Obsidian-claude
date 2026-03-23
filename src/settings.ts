@@ -9,13 +9,13 @@ export interface ClaudeAssistantSettings {
 
 export const DEFAULT_SETTINGS: ClaudeAssistantSettings = {
 	apiKey: "",
-	model: "claude-sonnet-4-6-20250415",
+	model: "claude-sonnet-4-6",
 	customSystemPrompt: "",
 };
 
 const AVAILABLE_MODELS = [
-	{ value: "claude-sonnet-4-6-20250415", label: "Claude Sonnet 4.6" },
-	{ value: "claude-haiku-4-5-20251001", label: "Claude Haiku 4.5" },
+	{ value: "claude-sonnet-4-6", label: "Claude Sonnet 4.6" },
+	{ value: "claude-haiku-4-5", label: "Claude Haiku 4.5" },
 ];
 
 export class ClaudeSettingTab extends PluginSettingTab {
