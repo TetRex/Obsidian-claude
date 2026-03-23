@@ -1,5 +1,5 @@
 import Anthropic from "@anthropic-ai/sdk";
-import type { MessageParam, ContentBlockParam, ToolUseBlock, ToolResultBlockParam } from "@anthropic-ai/sdk/resources/messages";
+import type { MessageParam, ContentBlockParam, ToolUseBlock, ToolResultBlockParam, TextBlockParam } from "@anthropic-ai/sdk/resources/messages";
 
 export interface StreamCallbacks {
 	onChunk?: (text: string) => void;
@@ -55,15 +55,24 @@ export class ClaudeClient {
 			const toolCalls: ToolUseBlock[] = [];
 
 			try {
+				const systemBlocks: TextBlockParam[] = [
+					{ type: "text", text: systemPrompt, cache_control: { type: "ephemeral" } },
+				];
+
 				const params: Anthropic.MessageCreateParams = {
 					model: this.model,
 					max_tokens: 4096,
-					system: systemPrompt,
+					system: systemBlocks,
 					messages: allMessages,
 					stream: true,
 				};
 				if (tools && tools.length > 0) {
-					(params as Record<string, unknown>).tools = tools;
+					const cachedTools = tools.map((t, i) =>
+						i === tools.length - 1
+							? { ...t, cache_control: { type: "ephemeral" as const } }
+							: t
+					);
+					(params as Record<string, unknown>).tools = cachedTools;
 				}
 
 				const stream = this.client.messages.stream(params);

@@ -149,7 +149,11 @@ async function readNote(app: App, path: string): Promise<string> {
 	if (!file || !(file instanceof TFile)) {
 		return `Error: File not found: ${path}`;
 	}
-	return app.vault.read(file);
+	const content = await app.vault.read(file);
+	const MAX_CHARS = 20000;
+	return content.length > MAX_CHARS
+		? content.slice(0, MAX_CHARS) + "\n\n[…file truncated for token efficiency]"
+		: content;
 }
 
 async function createNote(app: App, path: string, content: string): Promise<string> {

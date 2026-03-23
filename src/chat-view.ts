@@ -184,13 +184,28 @@ export class ClaudeChatView extends ItemView {
 		if (this.attachNote) {
 			const activeFile = this.app.workspace.getActiveFile();
 			if (activeFile) {
-				const noteContent = await this.app.vault.read(activeFile);
+				const raw = await this.app.vault.read(activeFile);
+				const MAX_NOTE_CHARS = 8000;
+				const noteContent = raw.length > MAX_NOTE_CHARS
+					? raw.slice(0, MAX_NOTE_CHARS) + "\n\n[…note truncated for token efficiency]"
+					: raw;
 				userContent = `[Attached note: ${activeFile.path}]\n\n${noteContent}\n\n---\n\n${text}`;
 			}
 			this.clearAttach();
 		}
 
 		this.displayMessages.push({ role: "user", content: text });
+
+		// Trim history to last 20 messages to cap input tokens
+		const MAX_HISTORY = 20;
+		if (this.apiMessages.length >= MAX_HISTORY) {
+			this.apiMessages = this.apiMessages.slice(-MAX_HISTORY);
+			// Ensure the first message is from the user (API requirement)
+			while (this.apiMessages.length > 0 && this.apiMessages[0].role !== "user") {
+				this.apiMessages = this.apiMessages.slice(1);
+			}
+		}
+
 		this.apiMessages.push({ role: "user", content: userContent });
 
 		const assistantMsg: ChatMessage = { role: "assistant", content: "" };
