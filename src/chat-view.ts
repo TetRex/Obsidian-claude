@@ -75,7 +75,7 @@ export class ClaudeChatView extends ItemView {
 		setIcon(settingsBtn, "settings");
 		settingsBtn.addEventListener("click", () => {
 			(this.app as any).setting.open();
-			(this.app as any).setting.openTabById("obsidian-claude-assistant");
+			(this.app as any).setting.openTabById("claudesidian");
 		});
 
 		// Clear button

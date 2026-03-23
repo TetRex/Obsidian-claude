@@ -1,6 +1,6 @@
 {
-	"id": "obsidian-claude-assistant",
-	"name": "Claude Assistant",
+	"id": "claudesidian",
+	"name": "Claudesidian",
 	"version": "1.0.0",
 	"minAppVersion": "1.0.0",
 	"description": "Claude AI writing assistant with chat sidebar, writing commands, and vault tools",

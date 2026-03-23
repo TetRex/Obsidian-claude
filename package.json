@@ -1,5 +1,5 @@
 {
-	"name": "obsidian-claude-assistant",
+	"name": "claudesidian",
 	"version": "1.0.0",
 	"description": "Claude AI writing assistant for Obsidian",
 	"main": "main.js",
