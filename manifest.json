@@ -4,6 +4,6 @@
 	"version": "1.0.0",
 	"minAppVersion": "1.0.0",
 	"description": "Claude AI writing assistant with chat sidebar, writing commands, and vault tools",
-	"author": "",
-	"isDesktopOnly": true
+	"author": "Kyrylo Luhinin",
+	"isDesktopOnly": false
 }

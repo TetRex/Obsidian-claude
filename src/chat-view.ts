@@ -1,4 +1,4 @@
-import { ItemView, Notice, WorkspaceLeaf, MarkdownRenderer, setIcon } from "obsidian";
+import { ItemView, Notice, Platform, WorkspaceLeaf, MarkdownRenderer, setIcon } from "obsidian";
 import type { MessageParam } from "@anthropic-ai/sdk/resources/messages";
 import type ClaudeAssistantPlugin from "./main";
 import { VAULT_TOOLS, createToolExecutor } from "./vault-tools";
@@ -31,6 +31,9 @@ export class ClaudeChatView extends ItemView {
 	private isStreaming = false;
 	private usageBarFill: HTMLElement | null = null;
 	private usageLabel: HTMLElement | null = null;
+	private promptHistory: string[] = [];
+	private historyIndex = -1;
+	private historyDraft = "";
 
 	constructor(leaf: WorkspaceLeaf, plugin: ClaudeAssistantPlugin) {
 		super(leaf);
@@ -104,30 +107,18 @@ export class ClaudeChatView extends ItemView {
 		// ── Input area ───────────────────────────────────────────
 		const inputArea = container.createDiv({ cls: "claude-chat-input-area" });
 
-		this.inputEl = inputArea.createEl("textarea", {
-			cls: "claude-chat-textarea",
-			attr: { placeholder: "Message Claude… (Enter to send)", rows: "1" },
-		});
-		this.inputEl.addEventListener("input", () => this.autoResizeTextarea());
-		this.inputEl.addEventListener("keydown", (e: KeyboardEvent) => {
-			if (e.key === "Enter" && !e.shiftKey) {
-				e.preventDefault();
-				this.sendMessage();
-			}
-		});
+		// Note chip row — shown above input row when a note is attached
+		const chipRow = inputArea.createDiv({ cls: "claude-input-chip-row" });
+		this.attachedNoteChip = chipRow.createDiv({ cls: "claude-note-chip hidden" });
 
-		const inputFooter = inputArea.createDiv({ cls: "claude-chat-input-footer" });
+		// Unified input row: [attach] [textarea] [send]
+		const inputRow = inputArea.createDiv({ cls: "claude-input-row" });
 
-		// Left side: attach button + note chip
-		const inputFooterLeft = inputFooter.createDiv({ cls: "claude-input-footer-left" });
-
-		// Attach button
-		this.attachBtn = inputFooterLeft.createEl("button", {
+		this.attachBtn = inputRow.createEl("button", {
 			cls: "claude-attach-btn",
 			attr: { title: "Attach current note as context" },
 		});
 		setIcon(this.attachBtn, "paperclip");
-		this.attachBtn.createSpan({ text: " Attach note" });
 		this.attachBtn.addEventListener("click", () => {
 			if (this.attachNote) {
 				this.clearAttach();
@@ -140,17 +131,68 @@ export class ClaudeChatView extends ItemView {
 				this.attachNote = true;
 				this.attachedNoteName = activeFile.basename;
 				this.attachBtn?.toggleClass("active", true);
-				this.renderAttachChip(inputFooterLeft);
+				this.renderAttachChip();
 			}
 		});
 
-		// Chip placeholder (rendered dynamically)
-		this.attachedNoteChip = inputFooterLeft.createDiv({ cls: "claude-note-chip hidden" });
+		this.inputEl = inputRow.createEl("textarea", {
+			cls: "claude-chat-textarea",
+			attr: {
+				placeholder: Platform.isMobile ? "Message Claude…" : "Message Claude… (Enter to send)",
+				rows: "1",
+			},
+		});
+		this.inputEl.addEventListener("input", () => this.autoResizeTextarea());
+		this.inputEl.addEventListener("keydown", (e: KeyboardEvent) => {
+			// On mobile, Enter adds a newline — use the send button instead
+			if (!Platform.isMobile && e.key === "Enter" && !e.shiftKey) {
+				e.preventDefault();
+				this.sendMessage();
+				return;
+			}
 
-		// Send button
-		this.sendBtn = inputFooter.createEl("button", {
+			// Arrow up/down — navigate prompt history
+			if (e.key === "ArrowUp" || e.key === "ArrowDown") {
+				if (!this.inputEl || this.promptHistory.length === 0) return;
+
+				// Only intercept when cursor is on the first/last line
+				const atFirstLine = this.inputEl.selectionStart <= this.inputEl.value.indexOf("\n") || !this.inputEl.value.includes("\n");
+				const atLastLine = this.inputEl.selectionStart >= this.inputEl.value.lastIndexOf("\n") + 1;
+
+				if (e.key === "ArrowUp" && !atFirstLine) return;
+				if (e.key === "ArrowDown" && !atLastLine) return;
+
+				e.preventDefault();
+
+				if (e.key === "ArrowUp") {
+					if (this.historyIndex === -1) {
+						// Save current draft before navigating
+						this.historyDraft = this.inputEl.value;
+					}
+					const next = this.historyIndex + 1;
+					if (next < this.promptHistory.length) {
+						this.historyIndex = next;
+						this.inputEl.value = this.promptHistory[this.promptHistory.length - 1 - this.historyIndex];
+					}
+				} else {
+					if (this.historyIndex <= 0) {
+						this.historyIndex = -1;
+						this.inputEl.value = this.historyDraft;
+					} else {
+						this.historyIndex--;
+						this.inputEl.value = this.promptHistory[this.promptHistory.length - 1 - this.historyIndex];
+					}
+				}
+
+				this.autoResizeTextarea();
+				// Move cursor to end
+				this.inputEl.selectionStart = this.inputEl.selectionEnd = this.inputEl.value.length;
+			}
+		});
+
+		this.sendBtn = inputRow.createEl("button", {
 			cls: "claude-send-btn mod-cta",
-			attr: { title: "Send (Enter)" },
+			attr: { title: "Send" },
 		});
 		setIcon(this.sendBtn, "send");
 		this.sendBtn.addEventListener("click", () => this.sendMessage());
@@ -175,6 +217,10 @@ export class ClaudeChatView extends ItemView {
 			);
 			return;
 		}
+
+		this.promptHistory.push(text);
+		this.historyIndex = -1;
+		this.historyDraft = "";
 
 		this.inputEl.value = "";
 		this.autoResizeTextarea();
@@ -310,7 +356,7 @@ export class ClaudeChatView extends ItemView {
 		}
 	}
 
-	private renderAttachChip(container: HTMLElement) {
+	private renderAttachChip() {
 		if (!this.attachedNoteChip) return;
 		this.attachedNoteChip.empty();
 		this.attachedNoteChip.removeClass("hidden");

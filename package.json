@@ -8,7 +8,7 @@
 		"build": "node esbuild.config.mjs production"
 	},
 	"keywords": [],
-	"author": "",
+	"author": "Kyrylo Luhinin",
 	"license": "MIT",
 	"devDependencies": {
 		"@types/node": "^22.0.0",
