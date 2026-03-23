@@ -1,4 +1,4 @@
-# Claude Assistant for Obsidian
+# Claudesidian
 
 An Obsidian plugin that integrates Claude AI directly into your vault. Chat with Claude in a sidebar, run writing commands on your notes, and let Claude read and modify your vault through tool calling.
 
@@ -11,17 +11,17 @@ An Obsidian plugin that integrates Claude AI directly into your vault. Chat with
 Copy these three files into your vault's plugin folder:
 
 ```
-<your-vault>/.obsidian/plugins/obsidian-claude-assistant/
+<your-vault>/.obsidian/plugins/claudesidian/
   main.js
   manifest.json
   styles.css
 ```
 
-Then in Obsidian: **Settings → Community plugins → turn off Restricted mode → enable Claude Assistant**.
+Then in Obsidian: **Settings → Community plugins → turn off Restricted mode → enable Claudesidian**.
 
 ### 2. Add your API key
 
-Open **Settings → Claude Assistant** and paste your Anthropic API key into the **API key** field.
+Open **Settings → Claudesidian** and paste your Anthropic API key into the **API key** field.
 Get a key at [console.anthropic.com](https://console.anthropic.com).
 
 Click **Test** to verify the connection.
@@ -39,7 +39,7 @@ You can also switch models directly from the chat sidebar at any time.
 
 ### 4. Create your instructions file (optional but recommended)
 
-Go to **Settings → Claude Assistant** and click **Create CLAUDE.md**.
+Go to **Settings → Claudesidian** and click **Create CLAUDE.md**.
 This creates a `CLAUDE.md` file at your vault root and opens it for editing.
 
 Fill in the template to tell Claude about your vault — its purpose, your writing style preferences, formatting rules, and any behaviours you want to enforce. Claude reads this file automatically on every request.
@@ -48,7 +48,7 @@ You can also place a `CLAUDE.md` inside any subfolder. Claude will merge instruc
 
 ### 5. Set a spending limit (optional)
 
-In **Settings → Claude Assistant**, set a **Monthly spending limit** in dollars. Claude will stop accepting new messages once the limit is reached. The counter resets automatically on the first of each month. You can reset it manually at any time with the **Reset usage** button.
+In **Settings → Claudesidian**, set a **Monthly spending limit** in dollars. Claude will stop accepting new messages once the limit is reached. The counter resets automatically on the first of each month. You can reset it manually at any time with the **Reset usage** button.
 
 ---
 
@@ -62,12 +62,12 @@ Open the chat panel from the ribbon icon (💬) or via **Command Palette → Ope
 - **Attach note** — click the paperclip button to attach the currently open note as context for your next message. The note name appears as a chip; click × to detach before sending
 - **Usage bar** — shows current monthly spend vs your limit as a thin progress bar under the header. Turns red when the limit is reached
 - **Token count** — each Claude response shows the number of output tokens at the bottom of the bubble
-- **Clear** — trash icon clears the conversation history (the session history is in-memory only; it does not persist across Obsidian restarts)
+- **Clear** — trash icon clears the conversation history (session only, not persisted)
 - **Settings shortcut** — gear icon opens the settings page directly
 
 Messages support full Markdown rendering — headings, bold, code blocks, lists, and links all display correctly in Claude's responses.
 
-Claude can use vault tools during the conversation (see below). Tool calls run silently in the background and show as Obsidian Notices when files are created or modified.
+Claude uses vault tools silently in the background. Notices appear when files are created or modified.
 
 ### Writing commands
 
@@ -88,7 +88,7 @@ All three commands open a **preview modal** before applying any changes:
 
 ### Vault tools (agentic loop)
 
-When asked, Claude can interact with your vault directly using these built-in tools:
+When asked, Claude can interact with your vault directly:
 
 | Tool | What it does |
 |---|---|
@@ -99,8 +99,6 @@ When asked, Claude can interact with your vault directly using these built-in to
 | `search_notes` | Full-text search across all notes |
 | `get_vault_structure` | Returns the folder tree |
 
-Claude calls tools automatically as needed and continues until the task is complete. A Notice appears every time a file is created or updated so you always know what changed.
-
 ### CLAUDE.md instruction system
 
 Claude loads instructions from `CLAUDE.md` files on every request:
@@ -108,7 +106,7 @@ Claude loads instructions from `CLAUDE.md` files on every request:
 1. `CLAUDE.md` at vault root (global instructions)
 2. `CLAUDE.md` in each parent folder of the currently active note (local overrides)
 
-Files are merged in order from global → local. Changes take effect immediately — no restart needed.
+Files are merged from global → local. Changes take effect immediately.
 
 ---
 
@@ -136,8 +134,6 @@ Anthropic API (streaming)
     ▼
 Usage recorded (tokens → dollars, persisted monthly)
 ```
-
-The conversation history is kept in memory for the session. Sending a message always includes the full history, so Claude has context of the entire conversation.
 
 ---
 
