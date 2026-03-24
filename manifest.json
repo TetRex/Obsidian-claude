@@ -3,7 +3,7 @@
 	"name": "Claude Assistant",
 	"version": "1.0.0",
 	"minAppVersion": "1.4.0",
-	"description": "Claude AI writing assistant with chat sidebar, writing commands, and vault tools",
+	"description": "Claude AI writing assistant with chat sidebar, writing commands, and vault tools.",
 	"author": "TetRex",
 	"authorUrl": "https://github.com/TetRex/",
 	"isDesktopOnly": true
