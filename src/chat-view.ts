@@ -83,7 +83,7 @@ export class ClaudeChatView extends ItemView {
 		// Settings button
 		const settingsBtn = headerActions.createEl("button", {
 			cls: "claude-icon-btn",
-			attr: { title: "Claude Assistant settings" },
+			attr: { title: "Claude assistant settings" },
 		});
 		setIcon(settingsBtn, "settings");
 		settingsBtn.addEventListener("click", () => {

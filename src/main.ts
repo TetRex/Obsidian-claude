@@ -34,14 +34,14 @@ export default class ClaudeAssistantPlugin extends Plugin {
 		this.registerView(CHAT_VIEW_TYPE, (leaf) => new ClaudeChatView(leaf, this));
 
 		// Ribbon icon to open chat
-		this.addRibbonIcon("message-square", "Open Claude chat", () => {
+		this.addRibbonIcon("message-square", "Open claude chat", () => {
 			void this.activateChatView();
 		});
 
 		// Command: open chat
 		this.addCommand({
 			id: "open-chat",
-			name: "Open Claude chat",
+			name: "Open claude chat",
 			callback: () => this.activateChatView(),
 		});
 
@@ -83,7 +83,7 @@ export default class ClaudeAssistantPlugin extends Plugin {
 			void (async () => {
 				if (!await this.vaultInstructions?.hasInstructions()) {
 					new Notice(
-						"Claude Assistant: No .claude.md found. Create one in settings or manually at vault root.",
+						"No .claude.md found. Create one in settings or manually at vault root.",
 						8000
 					);
 				}

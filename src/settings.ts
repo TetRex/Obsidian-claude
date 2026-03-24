@@ -93,7 +93,7 @@ export class ClaudeSettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName("Model")
-			.setDesc("Which Claude model to use")
+			.setDesc("Which claude model to use")
 			.addDropdown((dropdown) => {
 				for (const m of AVAILABLE_MODELS) {
 					dropdown.addOption(m.value, m.label);
@@ -113,7 +113,7 @@ export class ClaudeSettingTab extends PluginSettingTab {
 			)
 			.addTextArea((text) =>
 				text
-					.setPlaceholder("e.g. Always respond in Japanese...")
+					.setPlaceholder("Your custom prompt")
 					.setValue(this.plugin.settings.customSystemPrompt)
 					.then((t) => {
 						t.inputEl.rows = 4;
