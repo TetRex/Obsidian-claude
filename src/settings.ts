@@ -151,15 +151,6 @@ export class ClaudeSettingTab extends PluginSettingTab {
 							isNaN(parsed) || parsed < 0 ? 0 : parsed;
 						await this.plugin.saveSettings();
 					})
-			)
-			.addButton((btn) =>
-				btn.setButtonText("Reset usage").onClick(async () => {
-					this.plugin.settings.usageDollars = 0;
-					this.plugin.settings.usageMonth = "";
-					await this.plugin.saveSettings();
-					new Notice("Usage counter reset.");
-					this.display();
-				})
 			);
 
 		const usageDollars = this.plugin.settings.usageDollars;
