@@ -141,6 +141,9 @@ export class ClaudeSettingTab extends PluginSettingTab {
 						t.inputEl.min = "0";
 						t.inputEl.step = "0.5";
 						t.inputEl.style.width = "80px";
+						const suffix = t.inputEl.insertAdjacentElement("afterend", document.createElement("span")) as HTMLElement;
+						suffix.textContent = "$";
+						suffix.style.marginLeft = "4px";
 					})
 					.onChange(async (value) => {
 						const parsed = parseFloat(value);
