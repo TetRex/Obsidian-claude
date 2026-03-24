@@ -41,7 +41,7 @@ export class ClaudeChatView extends ItemView {
 	}
 
 	getViewType(): string { return CHAT_VIEW_TYPE; }
-	getDisplayText(): string { return "Claude Chat"; }
+	getDisplayText(): string { return "Claude chat"; }
 	getIcon(): string { return "message-square"; }
 
 	async onOpen() {
@@ -202,8 +202,8 @@ export class ClaudeChatView extends ItemView {
 
 	private autoResizeTextarea() {
 		if (!this.inputEl) return;
-		this.inputEl.style.height = "auto";
-		this.inputEl.style.height = Math.min(this.inputEl.scrollHeight, 160) + "px";
+		this.inputEl.setCssProps({ "--claude-textarea-height": "auto" });
+		this.inputEl.setCssProps({ "--claude-textarea-height": Math.min(this.inputEl.scrollHeight, 160) + "px" });
 	}
 
 	private async sendMessage() {
@@ -346,12 +346,12 @@ export class ClaudeChatView extends ItemView {
 		if (limitDollars > 0) {
 			const pct = Math.min(dollars / limitDollars, 1) * 100;
 			this.usageLabel.textContent = `$${dollars.toFixed(3)} / $${limitDollars.toFixed(2)}`;
-			this.usageBarFill.style.width = `${pct}%`;
+			this.usageBarFill.setCssProps({ "--claude-usage-pct": `${pct}%` });
 			this.usageBarFill.toggleClass("over-limit", dollars >= limitDollars);
 			this.usageBarFill.closest(".claude-usage-track")?.removeClass("hidden");
 		} else {
 			this.usageLabel.textContent = dollars > 0 ? `$${dollars.toFixed(3)} this month` : "";
-			this.usageBarFill.style.width = "0%";
+			this.usageBarFill.setCssProps({ "--claude-usage-pct": "0%" });
 			this.usageBarFill.closest(".claude-usage-track")?.addClass("hidden");
 		}
 	}

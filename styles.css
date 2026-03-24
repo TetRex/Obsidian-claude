@@ -103,6 +103,7 @@
 
 .claude-usage-fill {
 	height: 100%;
+	width: var(--claude-usage-pct, 0%);
 	background: var(--interactive-accent);
 	border-radius: 2px;
 	transition: width 0.3s ease;
@@ -273,6 +274,7 @@
 .claude-chat-textarea {
 	flex: 1;
 	resize: none;
+	height: var(--claude-textarea-height, auto);
 	min-height: 32px;
 	max-height: 160px;
 	border: none;
@@ -374,6 +376,19 @@
 .claude-send-btn:disabled {
 	opacity: 0.4;
 	cursor: not-allowed;
+}
+
+/* ── Settings ────────────────────────────────────────────── */
+.claude-setting-input-full {
+	width: 100%;
+}
+
+.claude-setting-input-number {
+	width: 80px;
+}
+
+.claude-setting-suffix {
+	margin-left: 4px;
 }
 
 /* ── Preview modal ───────────────────────────────────────── */

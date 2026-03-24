@@ -32,14 +32,14 @@ export default class ClaudeAssistantPlugin extends Plugin {
 		this.registerView(CHAT_VIEW_TYPE, (leaf) => new ClaudeChatView(leaf, this));
 
 		// Ribbon icon to open chat
-		this.addRibbonIcon("message-square", "Open Claude Chat", () => {
+		this.addRibbonIcon("message-square", "Open Claude chat", () => {
 			this.activateChatView();
 		});
 
 		// Command: open chat
 		this.addCommand({
 			id: "open-chat",
-			name: "Open Claude Chat",
+			name: "Open Claude chat",
 			callback: () => this.activateChatView(),
 		});
 

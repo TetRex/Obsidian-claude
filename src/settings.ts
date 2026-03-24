@@ -83,7 +83,7 @@ export class ClaudeSettingTab extends PluginSettingTab {
 					.setValue(this.plugin.settings.apiKey)
 					.then((t) => {
 						t.inputEl.type = "password";
-						t.inputEl.style.width = "100%";
+						t.inputEl.addClass("claude-setting-input-full");
 					})
 					.onChange(async (value) => {
 						this.plugin.settings.apiKey = value.trim();
@@ -117,7 +117,7 @@ export class ClaudeSettingTab extends PluginSettingTab {
 					.setValue(this.plugin.settings.customSystemPrompt)
 					.then((t) => {
 						t.inputEl.rows = 4;
-						t.inputEl.style.width = "100%";
+						t.inputEl.addClass("claude-setting-input-full");
 					})
 					.onChange(async (value) => {
 						this.plugin.settings.customSystemPrompt = value;
@@ -140,10 +140,10 @@ export class ClaudeSettingTab extends PluginSettingTab {
 						t.inputEl.type = "number";
 						t.inputEl.min = "0";
 						t.inputEl.step = "0.5";
-						t.inputEl.style.width = "80px";
+						t.inputEl.addClass("claude-setting-input-number");
 						const suffix = t.inputEl.insertAdjacentElement("afterend", document.createElement("span")) as HTMLElement;
 						suffix.textContent = "$";
-						suffix.style.marginLeft = "4px";
+						suffix.addClass("claude-setting-suffix");
 					})
 					.onChange(async (value) => {
 						const parsed = parseFloat(value);
