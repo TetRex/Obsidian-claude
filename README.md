@@ -43,12 +43,12 @@ You can also switch models directly from the chat sidebar at any time.
 
 ### 4. Create your instructions file (optional but recommended)
 
-Go to **Settings → Claudesidian** and click **Create CLAUDE.md**.
-This creates a `CLAUDE.md` file at your vault root and opens it for editing.
+Go to **Settings → Claudesidian** and click **Create .claude.md**.
+This creates a `.claude.md` file at your vault root and opens it for editing.
 
 Fill in the template to tell Claude about your vault — its purpose, your writing style preferences, formatting rules, and any behaviours you want to enforce. Claude reads this file automatically on every request.
 
-You can also place a `CLAUDE.md` inside any subfolder. Claude will merge instructions from the vault root through every parent folder of the active note, with more specific (local) instructions taking priority.
+You can also place a `.claude.md` inside any subfolder. Claude will merge instructions from the vault root through every parent folder of the active note, with more specific (local) instructions taking priority.
 
 ### 5. Set a spending limit (optional)
 
@@ -64,6 +64,7 @@ Open the chat panel from the ribbon icon (💬) or via **Command Palette → Ope
 
 - **Model switcher** — change between Sonnet and Haiku without leaving the chat
 - **Attach note** — click the paperclip button to attach the currently open note as context for your next message. The note name appears as a chip; click × to detach before sending
+- **Prompt history** — press ↑/↓ in the input box to navigate previously sent messages
 - **Usage bar** — shows current monthly spend vs your limit as a thin progress bar under the header. Turns red when the limit is reached
 - **Token count** — each Claude response shows the number of output tokens at the bottom of the bubble
 - **Clear** — trash icon clears the conversation history (session only, not persisted)
@@ -103,12 +104,12 @@ When asked, Claude can interact with your vault directly:
 | `search_notes` | Full-text search across all notes |
 | `get_vault_structure` | Returns the folder tree |
 
-### CLAUDE.md instruction system
+### .claude.md instruction system
 
-Claude loads instructions from `CLAUDE.md` files on every request:
+Claude loads instructions from `.claude.md` files on every request:
 
-1. `CLAUDE.md` at vault root (global instructions)
-2. `CLAUDE.md` in each parent folder of the currently active note (local overrides)
+1. `.claude.md` at vault root (global instructions)
+2. `.claude.md` in each parent folder of the currently active note (local overrides)
 
 Files are merged from global → local. Changes take effect immediately.
 
@@ -122,7 +123,7 @@ User message
     ▼
 Build system prompt
   ├─ Base instructions
-  ├─ CLAUDE.md hierarchy (vault root → active note's parent folders)
+  ├─ .claude.md hierarchy (vault root → active note's parent folders)
   └─ Custom system prompt (from settings)
     │
     ▼
@@ -150,8 +151,7 @@ Usage recorded (tokens → dollars, persisted monthly)
 | Custom system prompt | Extra instructions appended to every request |
 | Monthly spending limit | Block requests above this dollar amount (0 = no limit) |
 | Current usage | Dollars spent this calendar month |
-| Reset usage | Manually zero the usage counter |
-| CLAUDE.md | Create or open the vault instruction file |
+| .claude.md | Create or open the vault instruction file |
 | Test connection | Send a ping to verify your API key |
 
 ---
