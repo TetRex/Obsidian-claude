@@ -87,7 +87,7 @@ export class VaultPensieveSettingTab extends PluginSettingTab {
 					btn.setButtonText("Create .claude.md").setCta().onClick(async () => {
 						const created = await this.plugin.vaultInstructions?.createStarterTemplate();
 						if (created) {
-							new Notice(".claude.md created at vault root.");
+							new Notice(".claude.md and .structure.md created at vault root.");
 						} else {
 						new Notice(".claude.md already exists.");
 						}
