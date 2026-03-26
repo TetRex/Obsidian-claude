@@ -1,6 +1,6 @@
-# Claudesidian
+# VaultPensieve
 
-An Obsidian plugin that integrates Claude AI directly into your vault. Chat with Claude in a sidebar, run writing commands on your notes, and let Claude read and modify your vault through tool calling.
+An Obsidian plugin that integrates AI directly into your vault. Chat with Claude or a local Ollama model in a sidebar, run writing commands on your notes, and let the AI read and modify your vault through tool calling.
 
 ![Chat sidebar](.github/assets/chat.png)
 
@@ -8,29 +8,33 @@ An Obsidian plugin that integrates Claude AI directly into your vault. Chat with
 
 ---
 
-## First Start
+## First start
 
 ### 1. Install the plugin
 
 Copy these three files into your vault's plugin folder:
 
 ```
-<your-vault>/.obsidian/plugins/claudesidian/
+<your-vault>/.obsidian/plugins/vault-pensieve/
   main.js
   manifest.json
   styles.css
 ```
 
-Then in Obsidian: **Settings → Community plugins → turn off Restricted mode → enable Claudesidian**.
+Then in Obsidian: **Settings → Community plugins → turn off Restricted mode → enable VaultPensieve**.
 
-### 2. Add your API key
+### 2. Choose a provider
 
-Open **Settings → Claudesidian** and paste your Anthropic API key into the **API key** field.
+Open **Settings → VaultPensieve** and choose your AI provider.
+
+---
+
+#### Option A — Anthropic (Claude)
+
+Paste your Anthropic API key into the **API key** field.
 Get a key at [console.anthropic.com](https://console.anthropic.com).
 
 Click **Test** to verify the connection.
-
-### 3. Choose a model
 
 Two models are available:
 
@@ -39,20 +43,48 @@ Two models are available:
 | Claude Sonnet 4.6 | Fast | $3 / $15 per 1M tokens |
 | Claude Haiku 4.5 | Fastest | $1 / $5 per 1M tokens |
 
-You can also switch models directly from the chat sidebar at any time.
+You can switch models directly from the chat sidebar at any time.
 
-### 4. Create your instructions file (optional but recommended)
+---
 
-Go to **Settings → Claudesidian** and click **Create .claude.md**.
-This creates a `.claude.md` file at your vault root and opens it for editing.
+#### Option B — Ollama (local, free)
 
-Fill in the template to tell Claude about your vault — its purpose, your writing style preferences, formatting rules, and any behaviours you want to enforce. Claude reads this file automatically on every request.
+Ollama runs AI models on your own machine. No API key or internet connection required.
 
-You can also place a `.claude.md` inside any subfolder. Claude will merge instructions from the vault root through every parent folder of the active note, with more specific (local) instructions taking priority.
+1. Click **Download Ollama** in settings — this opens the installer for your OS.
+2. Install and launch Ollama.
+3. In the **Recommended models** list, click **Pull** next to a model to download it.
+4. Click **Test** to confirm Ollama is reachable.
 
-### 5. Set a spending limit (optional)
+Recommended models:
 
-In **Settings → Claudesidian**, set a **Monthly spending limit** in dollars. Claude will stop accepting new messages once the limit is reached. The counter resets automatically on the first of each month. You can reset it manually at any time with the **Reset usage** button.
+| Model | Size | Notes |
+|---|---|---|
+| `qwen2.5:7b` | ~4.7 GB | Best tool calling at 7B |
+| `qwen2.5:3b` | ~2 GB | Smallest with reliable tool calling |
+| `llama3.2:3b` | ~2 GB | Meta's small model, good instructions |
+| `llama3.1:8b` | ~4.7 GB | Well-tested, reliable tool use |
+| `gemma3:4b` | ~3.3 GB | Google's latest, good quality for the size |
+| `phi4-mini` | ~2.5 GB | Microsoft's small model, strong reasoning |
+
+Tool calling (reading/writing notes) requires a model that supports function calling. The models above are tested to work well.
+
+---
+
+### 3. Create your instructions file (optional but recommended)
+
+Go to **Settings → VaultPensieve** and click **Create .instructions.md**.
+This creates an `.instructions.md` file at your vault root with a starter template.
+
+Fill in the template to describe your vault — its purpose, writing style, formatting rules, and any behaviours you want to enforce. The AI reads this file automatically on every request.
+
+You can also place an `.instructions.md` inside any subfolder. Instructions are merged from the vault root through every parent folder of the active note, with more specific (local) instructions taking priority.
+
+A `.structure.md` file is also created at vault root. It maps every folder and note in your vault and is kept up to date automatically as files change.
+
+### 4. Set a spending limit (optional, Anthropic only)
+
+In **Settings → VaultPensieve**, set a **Monthly spending limit** in dollars. Requests will be blocked once the limit is reached. The counter resets automatically on the first of each month.
 
 ---
 
@@ -60,19 +92,20 @@ In **Settings → Claudesidian**, set a **Monthly spending limit** in dollars. C
 
 ### Chat sidebar
 
-Open the chat panel from the ribbon icon (💬) or via **Command Palette → Open Claude Chat**.
+Open the chat panel from the ribbon icon or via **Command Palette → Open VaultPensieve**.
 
-- **Model switcher** — change between Sonnet and Haiku without leaving the chat
-- **Attach note** — click the paperclip button to attach the currently open note as context for your next message. The note name appears as a chip; click × to detach before sending
+- **Model switcher** — change models without leaving the chat. When using Ollama, all installed models are available in the dropdown
+- **Attach note** — click the paperclip to attach the currently open note as context. The note name appears as a chip; click × to detach before sending
+- **Chat history** — clock icon shows all saved conversations. Click any entry to resume it; × to delete
+- **New chat** — plus icon starts a fresh conversation (current chat is saved automatically)
 - **Prompt history** — press ↑/↓ in the input box to navigate previously sent messages
-- **Usage bar** — shows current monthly spend vs your limit as a thin progress bar under the header. Turns red when the limit is reached
-- **Token count** — each Claude response shows the number of output tokens at the bottom of the bubble
-- **Clear** — trash icon clears the conversation history (session only, not persisted)
+- **Usage bar** — shows current monthly spend vs your limit (Anthropic only). Turns red when the limit is reached
+- **Token count** — each response shows the output token count at the bottom of the bubble
 - **Settings shortcut** — gear icon opens the settings page directly
 
-Messages support full Markdown rendering — headings, bold, code blocks, lists, and links all display correctly in Claude's responses.
+Messages support full Markdown rendering — headings, bold, code blocks, lists, and links all display correctly.
 
-Claude uses vault tools silently in the background. Notices appear when files are created or modified.
+The AI uses vault tools silently in the background. A notice appears whenever a file is created or modified.
 
 ### Writing commands
 
@@ -86,14 +119,14 @@ Three commands are available via the Command Palette (`Cmd/Ctrl+P`):
 
 All three commands open a **preview modal** before applying any changes:
 - The original text is shown on top
-- Claude's suggestion streams in below in real time
+- The suggestion streams in below in real time
 - **Accept** — applies the change to the editor
 - **Retry** — generates a new suggestion
 - **Cancel** — discards and closes
 
 ### Vault tools (agentic loop)
 
-When asked, Claude can interact with your vault directly:
+When asked, the AI can interact with your vault directly:
 
 | Tool | What it does |
 |---|---|
@@ -104,14 +137,14 @@ When asked, Claude can interact with your vault directly:
 | `search_notes` | Full-text search across all notes |
 | `get_vault_structure` | Returns the folder tree |
 
-### .claude.md instruction system
+### .instructions.md system
 
-Claude loads instructions from `.claude.md` files on every request:
+The AI loads instructions from `.instructions.md` files on every request:
 
-1. `.claude.md` at vault root (global instructions)
-2. `.claude.md` in each parent folder of the currently active note (local overrides)
+1. `.instructions.md` at vault root (global instructions)
+2. `.instructions.md` in each parent folder of the currently active note (local overrides)
 
-Files are merged from global → local. Changes take effect immediately.
+Files are merged from global → local. Changes take effect immediately — no restart needed.
 
 ---
 
@@ -123,21 +156,22 @@ User message
     ▼
 Build system prompt
   ├─ Base instructions
-  ├─ .claude.md hierarchy (vault root → active note's parent folders)
+  ├─ .instructions.md hierarchy (vault root → active note's parent folders)
   └─ Custom system prompt (from settings)
     │
     ▼
-Anthropic API (streaming)
+AI provider (streaming)
+  ├─ Anthropic API  ──or──  Ollama (/v1/chat/completions)
     │
     ├─ Text chunks → displayed incrementally in the chat bubble
     │
     └─ Tool calls (if any)
          ├─ Execute against app.vault
          ├─ Show Obsidian Notice
-         └─ Feed result back → loop until Claude stops calling tools
+         └─ Feed result back → loop until no more tool calls
     │
     ▼
-Usage recorded (tokens → dollars, persisted monthly)
+Usage recorded (Anthropic only: tokens → dollars, persisted monthly)
 ```
 
 ---
@@ -146,17 +180,22 @@ Usage recorded (tokens → dollars, persisted monthly)
 
 | Setting | Description |
 |---|---|
+| AI provider | Anthropic (Claude) or Ollama (local) |
 | API key | Your Anthropic API key. Stored in plugin data, never logged |
-| Model | Claude Sonnet 4.6 or Haiku 4.5 |
+| Model | Claude Sonnet 4.6 or Haiku 4.5 (Anthropic) |
+| Get Ollama | Opens the Ollama installer download for your OS |
+| Ollama model | Select from models installed in Ollama, or enter a name manually |
+| Recommended models | Pull supported models directly from the settings page |
 | Custom system prompt | Extra instructions appended to every request |
-| Monthly spending limit | Block requests above this dollar amount (0 = no limit) |
-| Current usage | Dollars spent this calendar month |
-| .claude.md | Create or open the vault instruction file |
-| Test connection | Send a ping to verify your API key |
+| Monthly spending limit | Block requests above this dollar amount — 0 = no limit (Anthropic only) |
+| Current usage | Dollars spent this calendar month (Anthropic only) |
+| .instructions.md | Create or delete the vault instruction file |
+| Test connection | Verify your API key or Ollama connection |
 
 ---
 
 ## Privacy & security
 
 - The API key is stored via Obsidian's plugin data (`data.json`) and is never logged or exposed
-- Note content is only sent to Anthropic when you explicitly attach a note or Claude calls a vault tool
+- Note content is only sent to the AI when you explicitly attach a note or the AI calls a vault tool
+- When using Ollama, all data stays on your machine — nothing is sent to external servers
