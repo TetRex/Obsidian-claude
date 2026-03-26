@@ -61,7 +61,7 @@ export class VaultPensieveSettingTab extends PluginSettingTab {
 
 		// Fetch async data in parallel before rendering
 		const [instructionExists, ollamaModels] = await Promise.all([
-			this.app.vault.adapter.exists(".claude.md"),
+			this.app.vault.adapter.exists(".instructions.md"),
 			isOllama ? this.fetchOllamaModels() : Promise.resolve([] as string[]),
 		]);
 
@@ -70,26 +70,26 @@ export class VaultPensieveSettingTab extends PluginSettingTab {
 		containerEl.empty();
 
 		new Setting(containerEl)
-			.setName("Vault instructions (.claude.md)")
+			.setName("Vault instructions (.instructions.md and .structure.md)")
 			.setDesc(
 				instructionExists
 					? "Instructions file exists at vault root. Open it to edit your AI instructions."
-					: "No .claude.md found. Create one with a starter template to customise how Claude behaves."
+					: "No .instructions.md found. Create one with a starter template to customise how Claude behaves."
 			)
 			.addButton((btn) => {
 				if (instructionExists) {
-					btn.setButtonText("Delete .claude.md").onClick(async () => {
-						await this.app.vault.adapter.remove(".claude.md");
-						new Notice(".claude.md deleted.");
+					btn.setButtonText("Delete .instructions.md").onClick(async () => {
+						await this.app.vault.adapter.remove(".instructions.md");
+						new Notice(".instructions.md deleted.");
 						this.display();
 					});
 				} else {
-					btn.setButtonText("Create .claude.md").setCta().onClick(async () => {
+					btn.setButtonText("Create .instructions.md").setCta().onClick(async () => {
 						const created = await this.plugin.vaultInstructions?.createStarterTemplate();
 						if (created) {
-							new Notice(".claude.md and .structure.md created at vault root.");
+							new Notice(".instructions.md and .structure.md created at vault root.");
 						} else {
-						new Notice(".claude.md already exists.");
+						new Notice(".instructions.md and .structure.md already exists.");
 						}
 						this.display();
 					});
@@ -146,22 +146,6 @@ export class VaultPensieveSettingTab extends PluginSettingTab {
 						});
 				});
 		} else {
-			new Setting(containerEl)
-				.setName("Ollama URL")
-				.setDesc("Base URL of your Ollama instance.")
-				.addText((text) =>
-					text
-						.setPlaceholder("http://localhost:11434")
-						.setValue(this.plugin.settings.ollamaBaseUrl)
-						.then((t) => t.inputEl.addClass("claude-setting-input-full"))
-						.onChange(async (value) => {
-							this.plugin.settings.ollamaBaseUrl = value.trim() || "http://localhost:11434";
-							await this.plugin.saveSettings();
-						})
-				)
-				.addButton((btn) =>
-					btn.setButtonText("Refresh models").onClick(() => this.display())
-				);
 
 			if (ollamaModels.length > 0) {
 				new Setting(containerEl)

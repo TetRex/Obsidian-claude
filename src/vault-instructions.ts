@@ -1,7 +1,7 @@
 import type { App } from "obsidian";
 import { getVaultStructure } from "./vault-tools";
 
-const INSTRUCTION_FILE = ".claude.md";
+const INSTRUCTION_FILE = ".instructions.md";
 
 export class VaultInstructions {
 	private app: App;
@@ -12,7 +12,7 @@ export class VaultInstructions {
 	}
 
 	/**
-	 * Load and merge .claude.md files from vault root through every parent
+	 * Load and merge .instructions.md files from vault root through every parent
 	 * folder of the active file. Global instructions come first, local last.
 	 */
 	async getInstructions(activeFilePath?: string): Promise<string> {
@@ -30,7 +30,7 @@ export class VaultInstructions {
 	}
 
 	/**
-	 * Returns true if at least one .claude.md exists in the vault.
+	 * Returns true if at least one .instructions.md exists in the vault.
 	 * Uses the filesystem adapter directly so dotfiles are not missed.
 	 */
 	async hasInstructions(): Promise<boolean> {
@@ -38,7 +38,7 @@ export class VaultInstructions {
 	}
 
 	/**
-	 * Create a starter .claude.md at vault root.
+	 * Create a starter .instructions.md at vault root.
 	 * Returns false if the file already exists.
 	 */
 	async createStarterTemplate(): Promise<boolean> {
@@ -48,7 +48,7 @@ export class VaultInstructions {
 
 		const template = `# Claude Instructions
 
-These instructions are automatically loaded by the Claude Assistant plugin on every request.
+These instructions are automatically loaded by the VaultPensieve plugin on every request.
 Edit this file to customise how Claude behaves in your vault.
 
 ---

@@ -20,8 +20,17 @@ import { continueWriting } from "./commands/continue-writing";
 import { summarizeNote } from "./commands/summarize-note";
 import { improveRewrite } from "./commands/improve-rewrite";
 
+export interface SavedChat {
+	id: string;
+	title: string;
+	updatedAt: number; // ms timestamp
+	displayMessages: Array<{ role: "user" | "assistant"; content: string; outputTokens?: number }>;
+	apiMessages: unknown[]; // MessageParam[] — plain JSON, cast on load
+}
+
 export default class VaultPensievePlugin extends Plugin {
 	settings: VaultPensieveSettings = DEFAULT_SETTINGS;
+	chats: SavedChat[] = [];
 	private client: AIClient | null = null;
 	vaultInstructions: VaultInstructions | null = null;
 	private structureUpdateTimer: number | null = null;
@@ -80,12 +89,12 @@ export default class VaultPensievePlugin extends Plugin {
 		this.registerEvent(this.app.vault.on("delete", (f) => { if (!f.path.startsWith(".")) scheduleStructureUpdate(); }));
 		this.registerEvent(this.app.vault.on("rename", (f) => { if (!f.path.startsWith(".")) scheduleStructureUpdate(); }));
 
-		// Offer to create .claude.md if none exists
+		// Offer to create .instructions.md if none exists
 		this.app.workspace.onLayoutReady(() => {
 			void (async () => {
 				if (!await this.vaultInstructions?.hasInstructions()) {
 					new Notice(
-						"No .claude.md found. Create one in settings or manually at vault root.",
+						"No .instructions.md found. Create one in settings or manually at vault root.",
 						8000
 					);
 				}
@@ -98,21 +107,39 @@ export default class VaultPensievePlugin extends Plugin {
 	}
 
 	async loadSettings() {
-		this.settings = Object.assign(
-			{},
-			DEFAULT_SETTINGS,
-			await this.loadData()
-		);
+		const data = (await this.loadData()) ?? {};
+		this.settings = Object.assign({}, DEFAULT_SETTINGS, data);
+		this.chats = Array.isArray(data.chats) ? data.chats : [];
 	}
 
 	async saveSettings() {
-		await this.saveData(this.settings);
+		await this.saveData({ ...this.settings, chats: this.chats });
 		this.client = null;
 	}
 
 	/** Save data without invalidating the client (e.g. for usage updates). */
-	private async saveData_(data: unknown) {
-		await this.saveData(data);
+	private async saveData_() {
+		await this.saveData({ ...this.settings, chats: this.chats });
+	}
+
+	saveChat(chat: SavedChat): void {
+		const idx = this.chats.findIndex(c => c.id === chat.id);
+		if (idx >= 0) {
+			this.chats[idx] = chat;
+		} else {
+			this.chats.unshift(chat); // newest first
+		}
+		if (this.chats.length > 50) this.chats.length = 50;
+		void this.saveData_();
+	}
+
+	deleteChat(id: string): void {
+		this.chats = this.chats.filter(c => c.id !== id);
+		void this.saveData_();
+	}
+
+	getChats(): SavedChat[] {
+		return this.chats;
 	}
 
 	calculateCost(model: string, inputTokens: number, outputTokens: number): number {
@@ -137,7 +164,7 @@ export default class VaultPensievePlugin extends Plugin {
 			inputTokens,
 			outputTokens
 		);
-		await this.saveData_(this.settings);
+		await this.saveData_();
 
 		// Push update to the open chat view
 		this.refreshChatViewUsage();
@@ -185,11 +212,12 @@ export default class VaultPensievePlugin extends Plugin {
 	}
 
 	async buildSystemPrompt(): Promise<string> {
-		const parts: string[] = [
-			"You are Claude, an AI assistant integrated into Obsidian. You help the user with writing, organizing, and managing their notes. You have access to vault tools to read and modify files when asked.",
-		];
+		const basePrompt = this.settings.provider === "ollama"
+			? "You are a helpful AI assistant integrated into Obsidian. You help the user with writing, organizing, and managing their notes. You have access to vault tools to read and modify files when asked."
+			: "You are Claude, an AI assistant integrated into Obsidian. You help the user with writing, organizing, and managing their notes. You have access to vault tools to read and modify files when asked.";
+		const parts: string[] = [basePrompt];
 
-		// Load .claude.md instructions
+		// Load .instructions.md instructions
 		if (this.vaultInstructions) {
 			const activeFile = this.app.workspace.getActiveFile();
 			const instructions = await this.vaultInstructions.getInstructions(

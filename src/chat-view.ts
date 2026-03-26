@@ -2,6 +2,7 @@ import type { App, WorkspaceLeaf} from "obsidian";
 import { ItemView, Notice, Platform, MarkdownRenderer, setIcon } from "obsidian";
 import type { MessageParam } from "@anthropic-ai/sdk/resources/messages";
 import type VaultPensievePlugin from "./main";
+import type { SavedChat } from "./main";
 import { VAULT_TOOLS, createToolExecutor } from "./vault-tools";
 
 export const CHAT_VIEW_TYPE = "claude-chat-view";
@@ -43,6 +44,9 @@ export class ClaudeChatView extends ItemView {
 	private promptHistory: string[] = [];
 	private historyIndex = -1;
 	private historyDraft = "";
+	private currentChatId: string | null = null;
+	private historyPanel: HTMLElement | null = null;
+	private showingHistory = false;
 
 	constructor(leaf: WorkspaceLeaf, plugin: VaultPensievePlugin) {
 		super(leaf);
@@ -89,6 +93,24 @@ export class ClaudeChatView extends ItemView {
 			new Notice(`Switched to ${label}`);
 		})());
 
+		// History button
+		const historyBtn = headerActions.createEl("button", {
+			cls: "claude-icon-btn",
+			attr: { title: "Chat history" },
+		});
+		setIcon(historyBtn, "clock");
+		historyBtn.addEventListener("click", () => {
+			this.showingHistory ? this.hideHistory() : this.showHistory();
+		});
+
+		// New chat button
+		const newChatBtn = headerActions.createEl("button", {
+			cls: "claude-icon-btn",
+			attr: { title: "New chat" },
+		});
+		setIcon(newChatBtn, "plus");
+		newChatBtn.addEventListener("click", () => this.newChat());
+
 		// Settings button
 		const settingsBtn = headerActions.createEl("button", {
 			cls: "claude-icon-btn",
@@ -100,24 +122,25 @@ export class ClaudeChatView extends ItemView {
 			(this.app as AppWithSetting).setting.openTabById("vault-pensieve");
 		});
 
-		// Clear button
-		const clearBtn = headerActions.createEl("button", {
-			cls: "claude-icon-btn",
-			attr: { title: "Clear chat" },
-		});
-		setIcon(clearBtn, "trash-2");
-		clearBtn.addEventListener("click", () => {
-			this.displayMessages = [];
-			this.apiMessages = [];
-			this.renderMessages();
-		});
-
-		// ── Usage bar ────────────────────────────────────────────
+		// ── Usage bar (Anthropic only) ───────────────────────────
 		const usageRow = header.createDiv({ cls: "claude-usage-row" });
-		this.usageLabel = usageRow.createSpan({ cls: "claude-usage-label" });
-		const usageTrack = usageRow.createDiv({ cls: "claude-usage-track" });
-		this.usageBarFill = usageTrack.createDiv({ cls: "claude-usage-fill" });
-		this.updateUsageDisplay();
+		if (this.plugin.settings.provider === "ollama") {
+			usageRow.addClass("hidden");
+		} else {
+			this.usageLabel = usageRow.createSpan({ cls: "claude-usage-label" });
+			const usageTrack = usageRow.createDiv({ cls: "claude-usage-track" });
+			this.usageBarFill = usageTrack.createDiv({ cls: "claude-usage-fill" });
+			this.updateUsageDisplay();
+		}
+
+		// ── History panel ─────────────────────────────────────────
+		this.historyPanel = container.createDiv({ cls: "claude-history-panel hidden" });
+		const histPanelHeader = this.historyPanel.createDiv({ cls: "claude-history-header" });
+		histPanelHeader.createSpan({ cls: "claude-history-title", text: "Chats" });
+		const closeHistBtn = histPanelHeader.createEl("button", { cls: "claude-icon-btn", attr: { title: "Close" } });
+		setIcon(closeHistBtn, "x");
+		closeHistBtn.addEventListener("click", () => this.hideHistory());
+		this.historyPanel.createDiv({ cls: "claude-history-list" });
 
 		// ── Messages ─────────────────────────────────────────────
 		this.messagesContainer = container.createDiv({ cls: "claude-chat-messages" });
@@ -218,6 +241,104 @@ export class ClaudeChatView extends ItemView {
 	}
 
 	onClose() {}
+
+	private saveCurrentChat() {
+		if (this.displayMessages.length === 0) return;
+		if (!this.currentChatId) {
+			this.currentChatId = `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+		}
+		const firstUser = this.displayMessages.find(m => m.role === "user");
+		const title = (firstUser?.content ?? "Chat")
+			.replace(/\n/g, " ")
+			.slice(0, 60)
+			.trimEnd();
+		this.plugin.saveChat({
+			id: this.currentChatId,
+			title,
+			updatedAt: Date.now(),
+			displayMessages: this.displayMessages.map(m => ({ ...m })),
+			apiMessages: [...this.apiMessages],
+		});
+	}
+
+	private newChat() {
+		this.saveCurrentChat();
+		this.currentChatId = null;
+		this.displayMessages = [];
+		this.apiMessages = [];
+		this.hideHistory();
+		this.renderMessages();
+	}
+
+	private loadChat(chat: SavedChat) {
+		this.currentChatId = chat.id;
+		this.displayMessages = chat.displayMessages.map(m => ({ ...m }));
+		this.apiMessages = chat.apiMessages as MessageParam[];
+		this.hideHistory();
+		this.renderMessages();
+		this.scrollToBottom();
+	}
+
+	private showHistory() {
+		this.showingHistory = true;
+		this.renderHistoryList();
+		this.historyPanel?.removeClass("hidden");
+		this.messagesContainer?.addClass("hidden");
+	}
+
+	private hideHistory() {
+		this.showingHistory = false;
+		this.historyPanel?.addClass("hidden");
+		this.messagesContainer?.removeClass("hidden");
+	}
+
+	private renderHistoryList() {
+		if (!this.historyPanel) return;
+		const list = this.historyPanel.querySelector(".claude-history-list") as HTMLElement | null;
+		if (!list) return;
+		list.empty();
+
+		const chats = this.plugin.getChats();
+		if (chats.length === 0) {
+			list.createDiv({ cls: "claude-history-empty", text: "No saved chats yet." });
+			return;
+		}
+
+		for (const chat of chats) {
+			const item = list.createDiv({ cls: "claude-history-item" });
+			if (chat.id === this.currentChatId) item.addClass("active");
+
+			const main = item.createDiv({ cls: "claude-history-item-main" });
+			main.createDiv({ cls: "claude-history-item-title", text: chat.title });
+			main.createDiv({ cls: "claude-history-item-date", text: this.formatDate(chat.updatedAt) });
+			main.addEventListener("click", () => this.loadChat(chat));
+
+			const del = item.createEl("button", { cls: "claude-icon-btn", attr: { title: "Delete chat" } });
+			setIcon(del, "x");
+			del.addEventListener("click", (e) => {
+				e.stopPropagation();
+				this.plugin.deleteChat(chat.id);
+				if (this.currentChatId === chat.id) {
+					this.currentChatId = null;
+					this.displayMessages = [];
+					this.apiMessages = [];
+				}
+				this.renderHistoryList();
+			});
+		}
+	}
+
+	private formatDate(ts: number): string {
+		const diff = Date.now() - ts;
+		const min = Math.floor(diff / 60_000);
+		if (min < 1) return "just now";
+		if (min < 60) return `${min}m ago`;
+		const h = Math.floor(min / 60);
+		if (h < 24) return `${h}h ago`;
+		const d = Math.floor(h / 24);
+		if (d < 7) return `${d}d ago`;
+		return new Date(ts).toLocaleDateString(undefined, { month: "short", day: "numeric" });
+	}
 
 	private autoResizeTextarea() {
 		if (!this.inputEl) return;
@@ -320,6 +441,7 @@ export class ClaudeChatView extends ItemView {
 			this.renderMessages();
 		} finally {
 			this.setStreaming(false);
+			this.saveCurrentChat();
 		}
 	}
 
