@@ -194,7 +194,8 @@ export default class VaultPensievePlugin extends Plugin {
 			if (this.settings.provider === "ollama") {
 				this.client = new OllamaClient(
 					this.settings.ollamaBaseUrl,
-					this.settings.ollamaModel
+					this.settings.ollamaModel,
+					this.settings.ollamaToolMode
 				);
 			} else {
 				if (!this.settings.apiKey) {
