@@ -1,5 +1,7 @@
 import { Notice, Plugin } from "obsidian";
+import { keymap } from "@codemirror/view";
 import type { ClaudeChatView } from "./chat-view";
+import { handleFastAnswer } from "./commands/fast-answer";
 
 const MODEL_COSTS: Record<string, { input: number; output: number }> = {
 	"claude-sonnet-4-6": { input: 3.0 / 1_000_000, output: 15.0 / 1_000_000 },
@@ -76,6 +78,14 @@ export default class VaultPensievePlugin extends Plugin {
 			name: "Improve/rewrite selection",
 			editorCallback: (editor) => improveRewrite(this, editor),
 		});
+
+		// Register :: fast-answer keymap
+		this.registerEditorExtension(
+			keymap.of([{
+				key: "Enter",
+				run: (view) => handleFastAnswer(this, view),
+			}])
+		);
 
 		// Auto-update .structure.md on vault changes
 		const scheduleStructureUpdate = () => {
