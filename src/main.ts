@@ -1,4 +1,4 @@
-import { Notice, Plugin } from "obsidian";
+import { Plugin } from "obsidian";
 import { keymap } from "@codemirror/view";
 import type { ClaudeChatView } from "./chat-view";
 import { handleFastAnswer } from "./commands/fast-answer";
@@ -89,6 +89,7 @@ export default class VaultPensievePlugin extends Plugin {
 
 		// Auto-update .structure.md on vault changes
 		const scheduleStructureUpdate = () => {
+			if (!this.settings.useInstructionFiles) return;
 			if (this.structureUpdateTimer !== null) window.clearTimeout(this.structureUpdateTimer);
 			this.structureUpdateTimer = window.setTimeout(() => {
 				this.structureUpdateTimer = null;
@@ -98,18 +99,6 @@ export default class VaultPensievePlugin extends Plugin {
 		this.registerEvent(this.app.vault.on("create", (f) => { if (!f.path.startsWith(".")) scheduleStructureUpdate(); }));
 		this.registerEvent(this.app.vault.on("delete", (f) => { if (!f.path.startsWith(".")) scheduleStructureUpdate(); }));
 		this.registerEvent(this.app.vault.on("rename", (f) => { if (!f.path.startsWith(".")) scheduleStructureUpdate(); }));
-
-		// Offer to create .instructions.md if none exists
-		this.app.workspace.onLayoutReady(() => {
-			void (async () => {
-				if (!await this.vaultInstructions?.hasInstructions()) {
-					new Notice(
-						"No .instructions.md found. Create one in settings or manually at vault root.",
-						8000
-					);
-				}
-			})();
-		});
 	}
 
 	onunload() {
@@ -119,6 +108,9 @@ export default class VaultPensievePlugin extends Plugin {
 	async loadSettings() {
 		const data = (await this.loadData()) ?? {};
 		this.settings = Object.assign({}, DEFAULT_SETTINGS, data);
+		if (typeof data.useInstructionFiles !== "boolean") {
+			this.settings.useInstructionFiles = await this.app.vault.adapter.exists(".instructions.md");
+		}
 		this.chats = Array.isArray(data.chats) ? data.chats : [];
 	}
 
@@ -237,7 +229,7 @@ Rules:
 		const parts: string[] = [basePrompt];
 
 		// Load .instructions.md instructions
-		if (this.vaultInstructions) {
+		if (this.settings.useInstructionFiles && this.vaultInstructions) {
 			const activeFile = this.app.workspace.getActiveFile();
 			const instructions = await this.vaultInstructions.getInstructions(
 				activeFile?.path
