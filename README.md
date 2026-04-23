@@ -32,12 +32,14 @@ Get a key at [console.anthropic.com](https://console.anthropic.com).
 
 Click **Test** to verify the connection.
 
-Two models are available:
+The plugin currently exposes these Claude models:
 
 | Model | Speed | Cost |
 |---|---|---|
-| Claude Sonnet 4.6 | Fast | $3 / $15 per 1M tokens |
-| Claude Haiku 4.5 | Fastest | $1 / $5 per 1M tokens |
+| Claude Opus 4.1 | Moderate | $15 / $75 per 1M input/output tokens |
+| Claude Sonnet 4 | Fast | $3 / $15 per 1M input/output tokens |
+| Claude Sonnet 3.7 | Fast | $3 / $15 per 1M input/output tokens |
+| Claude Haiku 3.5 | Fastest | $0.80 / $4.00 per 1M input/output tokens |
 
 You can switch Anthropic models directly from the chat sidebar at any time.
 
@@ -53,10 +55,10 @@ The plugin currently exposes these OpenAI models:
 
 | Model | Estimated cost used for tracking |
 |---|---|
-| GPT-5.4 | $2.50 / $15.00 per 1M input/output tokens |
-| GPT-5.4 mini | $0.75 / $4.50 per 1M input/output tokens |
-| GPT-5.4 nano | $0.20 / $1.25 per 1M input/output tokens |
+| GPT-5.2 | $1.75 / $14.00 per 1M input/output tokens |
+| GPT-5.2 pro | $21.00 / $168.00 per 1M input/output tokens |
 | GPT-5 mini | $0.25 / $2.00 per 1M input/output tokens |
+| GPT-5 nano | $0.05 / $0.40 per 1M input/output tokens |
 
 You can switch OpenAI models directly from the chat sidebar at any time.
 
@@ -69,7 +71,8 @@ Paste your OpenRouter API key into the **API key** field.
 Set **Model** to any OpenRouter model id, for example:
 
 - `openrouter/auto`
-- `openai/gpt-5.4-mini`
+- `anthropic/claude-sonnet-4`
+- `openai/gpt-5.2`
 
 Click **Test** to verify the connection.
 
@@ -82,10 +85,10 @@ OpenRouter model selection is configured in settings rather than a predefined dr
 Ollama runs AI models on your own machine. No API key or internet connection required.
 
 1. [Download and install Ollama](https://ollama.com/download) for your OS.
-2. Launch Ollama and pull the recommended model: `ollama pull gemma4`
+2. Launch Ollama and pull the recommended model: `ollama pull qwen3`
 3. Click **Test** in settings to confirm Ollama is reachable and that the selected model advertises tool calling support.
 
-The plugin expects Ollama at `http://localhost:11434`. The default model is `gemma4`. If the plugin can reach Ollama, installed models appear in a dropdown. If not, you can enter a model name manually. Tool calling requires a model that supports native tool or function calling.
+The plugin expects Ollama at `http://localhost:11434`. The default model is `qwen3`. If the plugin can reach Ollama, installed models appear in a dropdown. If not, you can enter a model name manually. Tool calling requires a model that supports native tool or function calling.
 
 ---
 
