@@ -1,6 +1,6 @@
 # VaultPensieve
 
-An Obsidian plugin that integrates AI directly into your vault. Chat with Anthropic, OpenAI, OpenRouter, or a local Ollama model in a sidebar, run writing commands on your notes, use inline fast answers, and let the AI read and modify your vault through tool calling.
+An Obsidian plugin that integrates AI directly into your vault. Chat with Anthropic, OpenAI, Gemini, or a local Ollama model in a sidebar, run writing commands on your notes, use inline fast answers, and let the AI read and modify your vault through tool calling.
 
 ---
 
@@ -36,10 +36,9 @@ The plugin currently exposes these Claude models:
 
 | Model | Speed | Cost |
 |---|---|---|
-| Claude Opus 4.1 | Moderate | $15 / $75 per 1M input/output tokens |
-| Claude Sonnet 4 | Fast | $3 / $15 per 1M input/output tokens |
-| Claude Sonnet 3.7 | Fast | $3 / $15 per 1M input/output tokens |
-| Claude Haiku 3.5 | Fastest | $0.80 / $4.00 per 1M input/output tokens |
+| Claude Opus 4.6 | Moderate | $5 / $25 per 1M input/output tokens |
+| Claude Sonnet 4.6 | Fast | $3 / $15 per 1M input/output tokens |
+| Claude Haiku 4.5 | Fastest | $1 / $5 per 1M input/output tokens |
 
 You can switch Anthropic models directly from the chat sidebar at any time.
 
@@ -55,28 +54,29 @@ The plugin currently exposes these OpenAI models:
 
 | Model | Estimated cost used for tracking |
 |---|---|
-| GPT-5.2 | $1.75 / $14.00 per 1M input/output tokens |
-| GPT-5.2 pro | $21.00 / $168.00 per 1M input/output tokens |
-| GPT-5 mini | $0.25 / $2.00 per 1M input/output tokens |
-| GPT-5 nano | $0.05 / $0.40 per 1M input/output tokens |
+| GPT-5.5 | $5.00 / $30.00 per 1M input/output tokens |
+| GPT-5.4 mini | $0.75 / $4.50 per 1M input/output tokens |
+| GPT-5.4 nano | $0.20 / $1.25 per 1M input/output tokens |
 
 You can switch OpenAI models directly from the chat sidebar at any time.
 
 ---
 
-#### Option C — OpenRouter
+#### Option C — Gemini
 
-Paste your OpenRouter API key into the **API key** field.
+Paste your Gemini API key into the **API key** field.
 
-Set **Model** to any OpenRouter model id, for example:
+The plugin currently exposes these Gemini models:
 
-- `openrouter/auto`
-- `anthropic/claude-sonnet-4`
-- `openai/gpt-5.2`
+| Model | Estimated cost used for tracking |
+|---|---|
+| Gemini 2.5 Pro | $1.25 / $10.00 per 1M input/output tokens |
+| Gemini 2.5 Flash | $0.30 / $2.50 per 1M input/output tokens |
+| Gemini 2.5 Flash-Lite | $0.10 / $0.40 per 1M input/output tokens |
 
 Click **Test** to verify the connection.
 
-OpenRouter model selection is configured in settings rather than a predefined dropdown in the chat header.
+You can switch Gemini models directly from the chat sidebar at any time.
 
 ---
 
@@ -85,10 +85,10 @@ OpenRouter model selection is configured in settings rather than a predefined dr
 Ollama runs AI models on your own machine. No API key or internet connection required.
 
 1. [Download and install Ollama](https://ollama.com/download) for your OS.
-2. Launch Ollama and pull the recommended model: `ollama pull qwen3`
+2. Launch Ollama and pull the recommended model: `ollama pull qwen3.6`
 3. Click **Test** in settings to confirm Ollama is reachable and that the selected model advertises tool calling support.
 
-The plugin expects Ollama at `http://localhost:11434`. The default model is `qwen3`. If the plugin can reach Ollama, installed models appear in a dropdown. If not, you can enter a model name manually. Tool calling requires a model that supports native tool or function calling.
+The plugin expects Ollama at `http://localhost:11434`. The default model is `qwen3.6`. If the plugin can reach Ollama, installed models appear in a dropdown. If not, you can enter a model name manually. Tool calling requires a model that supports native tool or function calling.
 
 ---
 
@@ -102,7 +102,7 @@ This is the primary place to define tone, formatting preferences, writing constr
 
 In **Settings → VaultPensieve**, set a **Monthly spending limit** in dollars. Requests will be blocked once the limit is reached. The counter resets automatically on the first of each month.
 
-Spend tracking is available for Anthropic models and the built-in tracked OpenAI models. It is not currently tracked for OpenRouter or Ollama.
+Spend tracking is available for Anthropic, OpenAI, and Gemini models in the built-in lists. It is not currently tracked for Ollama.
 
 ---
 
@@ -112,7 +112,7 @@ Spend tracking is available for Anthropic models and the built-in tracked OpenAI
 
 Open the chat panel from the ribbon icon or via **Command Palette → Open VaultPensieve**.
 
-- **Model switcher** — change models without leaving the chat. Anthropic and OpenAI use built-in model lists. Ollama shows installed models when reachable
+- **Model switcher** — change models without leaving the chat. Anthropic, OpenAI, and Gemini use built-in model lists. Ollama shows installed models when reachable
 - **Attach note** — click the paperclip to attach the currently open note as context. The note name appears as a chip; click × to detach before sending
 - **Chat history** — clock icon shows all saved conversations. Click any entry to resume it; × to delete
 - **New chat** — plus icon starts a fresh conversation (current chat is saved automatically)
@@ -179,7 +179,7 @@ Build system prompt
 AI provider (streaming)
   ├─ Anthropic API
   ├─ OpenAI API
-  ├─ OpenRouter API
+  ├─ Gemini API
   └─ Ollama (/v1/chat/completions)
     │
     ├─ Text chunks → displayed incrementally in the chat bubble
@@ -199,9 +199,9 @@ Usage recorded (supported priced models only: tokens → estimated dollars, pers
 
 | Setting | Description |
 |---|---|
-| AI provider | Anthropic, OpenAI, OpenRouter, or Ollama |
-| API key | Provider-specific API key for Anthropic, OpenAI, or OpenRouter. Stored in plugin data, never logged |
-| Model | Claude model, OpenAI model, or OpenRouter model id depending on the selected provider |
+| AI provider | Anthropic, OpenAI, Gemini, or Ollama |
+| API key | Provider-specific API key for Anthropic, OpenAI, or Gemini. Stored in plugin data, never logged |
+| Model | Claude model, OpenAI model, or Gemini model depending on the selected provider |
 | Ollama model | Select from models installed in Ollama, or enter a name manually |
 | Custom system prompt | Extra instructions appended to every request |
 | Monthly spending limit | Block requests above this dollar amount — 0 = no limit (supported tracked models only) |
@@ -214,4 +214,4 @@ Usage recorded (supported priced models only: tokens → estimated dollars, pers
 
 - API keys are stored via Obsidian's plugin data (`data.json`) and are never logged by the plugin
 - When using Ollama, note content stays on your machine unless your Ollama server is remote
-- When using Anthropic, OpenAI, or OpenRouter, the request content needed for chat or commands is sent to the selected provider
+- When using Anthropic, OpenAI, or Gemini, the request content needed for chat or commands is sent to the selected provider
