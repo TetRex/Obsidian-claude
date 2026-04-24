@@ -4,7 +4,7 @@ import type { MessageParam } from "@anthropic-ai/sdk/resources/messages";
 import type VaultPensievePlugin from "./main";
 import type { SavedChat } from "./main";
 import { VAULT_TOOLS, createToolExecutor } from "./vault-tools";
-import { ANTHROPIC_MODELS, GEMINI_MODELS, OPENAI_MODELS } from "./model-catalog";
+import { ANTHROPIC_MODELS, DEEPSEEK_MODELS, GEMINI_MODELS, OPENAI_MODELS } from "./model-catalog";
 
 export const CHAT_VIEW_TYPE = "claude-chat-view";
 
@@ -85,7 +85,7 @@ export class ClaudeChatView extends ItemView {
 				const opt = this.modelSelect.createEl("option", { text: m.label, value: m.value });
 				if (m.value === this.plugin.settings.openaiModel) opt.selected = true;
 			}
-		} else {
+		} else if (this.plugin.settings.provider === "gemini") {
 			for (const m of GEMINI_MODELS) {
 				const opt = this.modelSelect.createEl("option", { text: m.label, value: m.value });
 				if (m.value === this.plugin.settings.geminiModel) opt.selected = true;
@@ -94,6 +94,18 @@ export class ClaudeChatView extends ItemView {
 				this.modelSelect.createEl("option", {
 					text: this.plugin.settings.geminiModel,
 					value: this.plugin.settings.geminiModel,
+					attr: { selected: "true" },
+				});
+			}
+		} else {
+			for (const m of DEEPSEEK_MODELS) {
+				const opt = this.modelSelect.createEl("option", { text: m.label, value: m.value });
+				if (m.value === this.plugin.settings.deepseekModel) opt.selected = true;
+			}
+			if (!DEEPSEEK_MODELS.some(m => m.value === this.plugin.settings.deepseekModel)) {
+				this.modelSelect.createEl("option", {
+					text: this.plugin.settings.deepseekModel,
+					value: this.plugin.settings.deepseekModel,
 					attr: { selected: "true" },
 				});
 			}
@@ -125,6 +137,11 @@ export class ClaudeChatView extends ItemView {
 					this.plugin.settings.geminiModel = modelValue;
 					await this.plugin.saveSettings();
 					new Notice(`Switched to ${GEMINI_MODELS.find(m => m.value === modelValue)?.label ?? modelValue}`);
+					break;
+				case "deepseek":
+					this.plugin.settings.deepseekModel = modelValue;
+					await this.plugin.saveSettings();
+					new Notice(`Switched to ${DEEPSEEK_MODELS.find(m => m.value === modelValue)?.label ?? modelValue}`);
 					break;
 			}
 		})());
