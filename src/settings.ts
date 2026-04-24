@@ -3,12 +3,13 @@ import { Notice, PluginSettingTab, Setting } from "obsidian";
 import type VaultPensievePlugin from "./main";
 import {
 	ANTHROPIC_MODELS,
+	DEEPSEEK_MODELS,
 	GEMINI_MODELS,
 	OLLAMA_DEFAULT_MODEL,
 	OPENAI_MODELS,
 } from "./model-catalog";
 
-export type AIProvider = "anthropic" | "openai" | "gemini" | "ollama";
+export type AIProvider = "anthropic" | "openai" | "gemini" | "deepseek" | "ollama";
 
 export interface VaultPensieveSettings {
 	provider: AIProvider;
@@ -18,6 +19,8 @@ export interface VaultPensieveSettings {
 	openaiModel: string;
 	geminiApiKey: string;
 	geminiModel: string;
+	deepseekApiKey: string;
+	deepseekModel: string;
 	ollamaBaseUrl: string;
 	ollamaModel: string;
 	customSystemPrompt: string;
@@ -34,6 +37,8 @@ export const DEFAULT_SETTINGS: VaultPensieveSettings = {
 	openaiModel: "gpt-5.4-mini",
 	geminiApiKey: "",
 	geminiModel: "gemini-2.5-flash",
+	deepseekApiKey: "",
+	deepseekModel: "deepseek-v4-flash",
 	ollamaBaseUrl: "http://localhost:11434",
 	ollamaModel: OLLAMA_DEFAULT_MODEL,
 	customSystemPrompt: "",
@@ -119,6 +124,7 @@ export class VaultPensieveSettingTab extends PluginSettingTab {
 		const isAnthropic = this.plugin.settings.provider === "anthropic";
 		const isOpenAI = this.plugin.settings.provider === "openai";
 		const isGemini = this.plugin.settings.provider === "gemini";
+		const isDeepSeek = this.plugin.settings.provider === "deepseek";
 
 		// Fetch async data in parallel before rendering
 		const ollamaModels = isOllama ? await this.fetchOllamaModels() : [];
@@ -129,11 +135,12 @@ export class VaultPensieveSettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName("AI provider")
-			.setDesc("Use Anthropic, OpenAI, Gemini, or a local Ollama instance.")
+			.setDesc("Use Anthropic, OpenAI, Gemini, DeepSeek, or a local Ollama instance.")
 			.addDropdown((dropdown) => {
 				dropdown.addOption("anthropic", "Anthropic (Claude)");
 				dropdown.addOption("openai", "OpenAI");
 				dropdown.addOption("gemini", "Google Gemini");
+				dropdown.addOption("deepseek", "DeepSeek");
 				dropdown.addOption("ollama", "Ollama (local)");
 				dropdown
 					.setValue(this.plugin.settings.provider)
@@ -243,6 +250,44 @@ export class VaultPensieveSettingTab extends PluginSettingTab {
 						.setValue(this.plugin.settings.geminiModel)
 						.onChange(async (value) => {
 							this.plugin.settings.geminiModel = value;
+							await this.plugin.saveSettings();
+						});
+				});
+		} else if (isDeepSeek) {
+			new Setting(containerEl)
+				.setName("API key")
+				.setDesc("Your DeepSeek API key stored locally in plugin data.")
+				.addText((text) =>
+					text
+						.setPlaceholder("")
+						.setValue(this.plugin.settings.deepseekApiKey)
+						.then((t) => {
+							t.inputEl.type = "password";
+							t.inputEl.addClass("claude-setting-input-full");
+						})
+						.onChange(async (value) => {
+							this.plugin.settings.deepseekApiKey = value.trim();
+							await this.plugin.saveSettings();
+						})
+				);
+
+			new Setting(containerEl)
+				.setName("Model")
+				.setDesc("Which DeepSeek model to use.")
+				.addDropdown((dropdown) => {
+					for (const m of DEEPSEEK_MODELS) {
+						dropdown.addOption(m.value, m.label);
+					}
+					if (!DEEPSEEK_MODELS.some(m => m.value === this.plugin.settings.deepseekModel)) {
+						dropdown.addOption(
+							this.plugin.settings.deepseekModel,
+							this.plugin.settings.deepseekModel
+						);
+					}
+					dropdown
+						.setValue(this.plugin.settings.deepseekModel)
+						.onChange(async (value) => {
+							this.plugin.settings.deepseekModel = value;
 							await this.plugin.saveSettings();
 						});
 				});
@@ -359,7 +404,8 @@ export class VaultPensieveSettingTab extends PluginSettingTab {
 					const missingKey =
 						(isAnthropic && !this.plugin.settings.apiKey) ||
 						(isOpenAI && !this.plugin.settings.openaiApiKey) ||
-						(isGemini && !this.plugin.settings.geminiApiKey);
+						(isGemini && !this.plugin.settings.geminiApiKey) ||
+						(isDeepSeek && !this.plugin.settings.deepseekApiKey);
 					if (missingKey) {
 						new Notice("Please enter an API key first.");
 						return;

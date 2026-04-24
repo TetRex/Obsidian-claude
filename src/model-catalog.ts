@@ -70,6 +70,21 @@ export const GEMINI_MODELS: ModelOption[] = [
 	},
 ];
 
+export const DEEPSEEK_MODELS: ModelOption[] = [
+	{
+		value: "deepseek-v4-flash",
+		label: "DeepSeek V4 Flash",
+		inputCostPerMillion: 0.14,
+		outputCostPerMillion: 0.28,
+	},
+	{
+		value: "deepseek-v4-pro",
+		label: "DeepSeek V4 Pro",
+		inputCostPerMillion: 1.74,
+		outputCostPerMillion: 3.48,
+	},
+];
+
 export const OLLAMA_DEFAULT_MODEL = "qwen3.6";
 
 export const LEGACY_MODEL_MIGRATIONS: Partial<Record<AIProvider, Record<string, string>>> = {
@@ -96,6 +111,10 @@ export const LEGACY_MODEL_MIGRATIONS: Partial<Record<AIProvider, Record<string, 
 		"google/gemini-2.5-flash": "gemini-2.5-flash",
 		"google/gemini-2.5-flash-lite": "gemini-2.5-flash-lite",
 	},
+	deepseek: {
+		"deepseek-chat": "deepseek-v4-flash",
+		"deepseek-reasoner": "deepseek-v4-flash",
+	},
 };
 
 export const MODEL_COSTS: Record<string, { input: number; output: number }> = Object.fromEntries(
@@ -103,6 +122,7 @@ export const MODEL_COSTS: Record<string, { input: number; output: number }> = Ob
 		...ANTHROPIC_MODELS.map((model) => ["anthropic", model] as const),
 		...OPENAI_MODELS.map((model) => ["openai", model] as const),
 		...GEMINI_MODELS.map((model) => ["gemini", model] as const),
+		...DEEPSEEK_MODELS.map((model) => ["deepseek", model] as const),
 	]
 		.filter(([, model]) => model.inputCostPerMillion !== undefined && model.outputCostPerMillion !== undefined)
 		.map(([provider, model]) => [
